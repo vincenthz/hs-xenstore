@@ -38,13 +38,11 @@ import Data.IORef
 import Data.Typeable
 
 import Control.Concurrent
-import Control.Exception (catchJust, tryJust, bracketOnError, bracket, throwIO, Exception(..))
+import Control.Exception (catchJust, tryJust, bracket, throwIO, Exception(..))
 import Control.Applicative ((<$>))
 import Control.Monad
 
 import System.IO
-
-import Network.Socket
 
 data Operation =
 	  Debug
@@ -155,9 +153,8 @@ data XsHandle = XsHandle
 	}
 
 initiateXS :: IO XsHandle
-initiateXS = bracketOnError (socket AF_UNIX Stream 0) sClose $ \sock -> do
-	connect sock (SockAddrUnix "/var/run/xenstored/socket")
-	handle <- socketToHandle sock ReadWriteMode
+initiateXS = do
+	handle <- openFile "/proc/xen/xenbus" ReadWriteMode
 	mvar   <- newMVar 0
 	xshs   <- newIORef (XsHandleState [] 0)
 	return $ XsHandle handle mvar xshs

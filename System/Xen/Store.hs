@@ -39,6 +39,7 @@ import Data.Typeable
 
 import Control.Concurrent
 import Control.Exception (catchJust, tryJust, bracketOnError, bracket, throwIO, Exception(..))
+import qualified Control.Exception as E
 import Control.Applicative ((<$>))
 import Control.Monad
 
@@ -258,11 +259,13 @@ withTransaction xsh f = toRun
 	where
 		toRun = do
 			xsTransactionStart xsh
-			r <- catch f (\e -> xsTransactionEnd xsh False >> throwIO e)
+			r <- E.catch f (\e -> xsTransactionEnd xsh False >> throwIOExn e)
 			again <- catchJust (\e -> if e == ErrorAgain then Just () else Nothing)
 			                   (xsTransactionEnd xsh True >> return False)
 			                   (\_ -> return True)
 			if again then toRun else return r
+		throwIOExn :: E.SomeException -> IO a
+		throwIOExn = throwIO
 
 ack ((_, payload)) = when (payload /= "OK") $ do
 	error "unexpected reply, expecting OK"

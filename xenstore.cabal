@@ -1,5 +1,5 @@
 Name:                xenstore
-Version:             0.1.0
+Version:             0.1.1
 Description:         Xenstore client access
 License:             BSD3
 License-file:        LICENSE
